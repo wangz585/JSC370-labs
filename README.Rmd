@@ -211,10 +211,31 @@ Knit the doc and save it on GitHub.
 
 For each state, identify what is the station that is closest to the mid-point of the state. Combining these with the stations you identified in the previous question, use `leaflet()` to visualize all ~100 points in the same figure, applying different colors for those identified in this question.
 
+```{r}
+mid_location <- met[, .(lon_50 = quantile(lon, probs = .5, na.rm = T),
+                     lat_50 = quantile(lat, probs = .5, na.rm = T)),
+                 by = STATE]
+mid <- merge(x = met, y = mid_location, by = "STATE")
 
+# find euclidean distance
+mid[, mid_eudist := sqrt((lon - lon_50)^2 + (lat - lat_50)^2)]
+mid_station <- mid[, .SD[which.min(mid_eudist)], by = STATE]
 
+# previous result
 
-Knit the doc and save it on GitHub.
+leaflet () %>%
+  addProviderTiles('CartoDB.Positron') %>%
+  addCircles(data = mid_station, lat = ~lat, lng = ~lon, popup = "mid station",
+             opacity = 1, fillOpacity = 1, radius = 100, color = "Blue") %>%
+  addCircles(data = rep_temp_station_state, lat = ~lat, lng = ~lon, popup = "temp rep station",
+             opacity = 1, fillOpacity = 1, radius = 50, color = "Red") %>%
+  addCircles(data = rep_wind_station_state, lat = ~lat, lng = ~lon, popup = "wind rep station",
+             opacity = 1, fillOpacity = 1, radius = 50, color = "Green") %>%
+  addCircles(data = rep_atm_station_state, lat = ~lat, lng = ~lon, popup = "atm rep station",
+             opacity = 1, fillOpacity = 1, radius = 50, color = "Yellow")
+```
+
+Combing the results from Q3. We plotted median location (in terms of latitude and longitude) in blue, median temperature in red, median atmospheric pressure in yellow as well as median wind speed in green in the map. From the map, we cannot see obvious pattern except that yellow dots (median atmospheric pressure) are not close to other three points in some states. This map is not visible in md file however.
 
 ## Question 4: Means of means
 
