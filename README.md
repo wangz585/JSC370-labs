@@ -1,4 +1,5 @@
 Lab 05 - Data Wrangling
+Notice: Please go to lab5.html for html output
 ================
 
 # Learning goals
