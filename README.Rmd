@@ -289,5 +289,46 @@ Let's practice running regression models with smooth functions on X. We need the
 
 - using your data with the median values per station, examine the association between median temperature (y) and median wind speed (x). Create a scatterplot of the two variables using ggplot2. Add both a linear regression line and a smooth line.
 
+```{r}
+library(ggplot2)
+
+station_median <- met[, .(temp = quantile(temp, probs = .5, na.rm = T), 
+                   wind.sp = quantile(wind.sp, probs = .5, na.rm = T), 
+                   atm.press = quantile(atm.press, probs = .5, na.rm = T)),
+                    by = .(USAFID, STATE)]
+
+count(station_median)
+
+ggplot(station_median, aes(x = wind.sp, y = temp)) +
+  geom_point() +
+  geom_smooth(method = "lm") + 
+  geom_smooth(method = "gam", col = 2)
+
+library(mgcv)
+lm_mod <- lm(temp ~ wind.sp, data = station_median)
+summary(lm_mod)
+plot(lm_mod)
+```
+
+We first find out median temperature and wind speed for each weather station. There are 1595 data points in the regression in total. The linear regression model does not fit the model from the statistics. It has R-square value 0.02174. Also, from the residual plot, we can see the residual is widely spread. And from the Q-Q plot, we see the data in not normally distributed, which is a prerequisite for the linear regression. 
+
 - fit both a linear model and a spline model (use `gam()` with a cubic regression spline on wind speed). Summarize and plot the results from the models and interpret which model is the best fit and why.
 
+```{r}
+gam_mod <- gam(temp ~ s(wind.sp, bs = "cr", k = 17), data = station_median)
+summary(gam_mod)
+plot(gam_mod)
+```
+
+By using the spline model, it is still not good to fit the data as it only has r-squared value of 0.0486. However, if we reorganize the data to state-level. That is using median values per each wind speed to predict temperature with the spline model. We can see the following result.
+
+
+```{r}
+station_ave[, temp_med := quantile(temp, probs = .5, na.rm = T), by = STATE]
+station_ave[, wind.sp_med := quantile(wind.sp, probs = .5, na.rm = T), by = STATE]
+gam_mod_state <- gam(temp_med ~ s(wind.sp_med, bs = "cr", k = 25), data = station_ave)
+summary(gam_mod_state)
+plot(gam_mod_state)
+```
+
+The R squared value is above 0.6, which means is a good fit of the model.
