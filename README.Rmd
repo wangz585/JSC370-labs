@@ -92,11 +92,12 @@ Once you are done setting up the project, you can now start working with the MET
 ```{r}
 library("data.table")
 library(dplyr)
+library(leaflet)
 ```
 
 2. Load the met data from https://github.com/JSC370/jsc370-2023/blob/main/labs/lab03/met_all.gz or  (Use https://raw.githubusercontent.com/JSC370/jsc370-2023/main/labs/lab03/met_all.gz to download programmatically), and also the station data. For the latter, you can use the code we used during lecture to pre-process the stations data:
 
-```{r stations-data, eval = FALSE}
+```{r stations-data}
 # Download the data
 stations <- fread("ftp://ftp.ncdc.noaa.gov/pub/data/noaa/isd-history.csv")
 stations[, USAF := as.integer(USAF)]
@@ -120,7 +121,7 @@ stations <- stations[n == 1,][, n := NULL]
 3. Merge the data as we did during the lecture.
 
 ```{r}
-fn <- "https://raw.githubusercontent.com/JSC370/jsc370-2023/main/labs/lab03/met_all.gz"
+#fn <- "https://raw.githubusercontent.com/JSC370/jsc370-2023/main/labs/lab03/met_all.gz"
 if (!file.exists("met_all.gz"))
   download.file(fn, destfile = "met_all.gz")
 met <- data.table::fread("met_all.gz")
@@ -135,7 +136,9 @@ Across all weather stations, what is the median station in terms of temperature,
 ```{r}
 station_ave <- met[, .(temp = mean(temp, na.rm = T), 
                    wind.sp = mean(wind.sp, na.rm = T), 
-                   atm.press = mean(atm.press, na.rm = T)), 
+                   atm.press = mean(atm.press, na.rm = T),
+                   lat = mean(lat, na.rm=T), 
+                   lon = mean(lon, na.rm=T)), 
                     by = .(USAFID, STATE)]
 station_ave
 ```
@@ -163,15 +166,19 @@ station_ave %>%
   mutate_at(vars(atm.press), function(x) if_else(between(percent_rank(x), .499, .501), x, NA_real_)) %>%
   subset(!is.na(atm.press))
 ```
+We printed out weather stations of median temperature, wind speed and atmosphere pressure.
+Find that weather station 724066 in Maryland has both median in wind speed and temperature.
+And we can also see the location of median wind speed and temperature are closer to each other comparing
+to atmosphere pressure.
+
 Knit the document, commit your changes, and save it on GitHub. Don't forget to add `README.md` to the tree, the first time you render it.
 
 ## Question 2: Representative station per state
 
 Just like the previous question, you are asked to identify what is the most representative, the median, station per state. This time, instead of looking at one variable at a time, look at the euclidean distance. If multiple stations show in the median, select the one located at the lowest latitude.
 
-```{r}
 
-```
+
 
 Knit the doc and save it on GitHub.
 
@@ -179,9 +186,8 @@ Knit the doc and save it on GitHub.
 
 For each state, identify what is the station that is closest to the mid-point of the state. Combining these with the stations you identified in the previous question, use `leaflet()` to visualize all ~100 points in the same figure, applying different colors for those identified in this question.
 
-```{r}
 
-```
+
 
 Knit the doc and save it on GitHub.
 
@@ -195,9 +201,7 @@ Start by computing the states' average temperature. Use that measurement to clas
 - Mid: temp >= 20 and temp < 25
 - High: temp >= 25
 
-```{r}
 
-```
 
 Once you are done with that, you can compute the following:
 
@@ -209,12 +213,9 @@ Once you are done with that, you can compute the following:
 
 All by the levels described before.
 
-```{r}
 
-```
 
 Knit the document, commit your changes, and push them to GitHub. 
-
 
 ## Question 5: Advanced Regression
 
@@ -224,6 +225,3 @@ Let's practice running regression models with smooth functions on X. We need the
 
 - fit both a linear model and a spline model (use `gam()` with a cubic regression spline on wind speed). Summarize and plot the results from the models and interpret which model is the best fit and why.
 
-```{r}
-
-```
