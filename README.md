@@ -256,6 +256,53 @@ of looking at one variable at a time, look at the euclidean distance. If
 multiple stations show in the median, select the one located at the
 lowest latitude.
 
+``` r
+# median temp station
+station_ave[, temp_dist := abs(temp - quantile(temp, probs = .5, na.rm = T)), by = STATE]
+station_ave[, wind.sp_dist := abs(temp - quantile(wind.sp, probs = .5, na.rm = T)), by = STATE]
+station_ave[, atm.press_dist := abs(temp - quantile(atm.press, probs = .5, na.rm = T)), by = STATE]
+
+rep_temp_station_state <- station_ave %>%
+  group_by(STATE) %>%
+  filter(temp_dist == min(temp_dist)) %>%
+  filter(lat == min(lat))
+
+# median wind.sp
+rep_wind_station_state <- station_ave %>%
+  group_by(STATE) %>%
+  filter(wind.sp_dist == min(wind.sp_dist)) %>%
+  filter(lat == min(lat))
+
+# median atm.press
+rep_atm_station_state <- station_ave %>%
+  group_by(STATE) %>%
+  filter(atm.press_dist == min(atm.press_dist)) %>%
+  filter(lat == min(lat))
+
+rep_temp_station_state
+```
+
+    ## # A tibble: 42 × 10
+    ## # Groups:   STATE [42]
+    ##    USAFID STATE  temp wind.sp atm.press   lat    lon temp_dist wind.sp…¹ atm.p…²
+    ##     <int> <chr> <dbl>   <dbl>     <dbl> <dbl>  <dbl>     <dbl>     <dbl>   <dbl>
+    ##  1 720202 OR     17.2   1.83       NaN   45.4 -124.    0.817        15.2    998.
+    ##  2 720254 WA     19.2   1.27       NaN   46.7 -123.    0            18.0     NA 
+    ##  3 720284 MI     20.5   1.98       NaN   42.6  -84.8   0            18.2    994.
+    ##  4 720328 WV     21.9   1.62       NaN   39    -80.3   0.00374      20.3    994.
+    ##  5 720545 CT     22.4   1.90       NaN   41.4  -72.5   0.0798       20.3    992.
+    ##  6 720592 AL     26.3   0.784      NaN   30.5  -87.9   0.0213       24.7    989.
+    ##  7 720605 SC     25.9   1.39       NaN   34.7  -80.0   0.0682       24.2    989.
+    ##  8 720964 FL     27.6   3.19      1016.  30.0  -85.5   0.00372      24.9    988.
+    ##  9 722004 ND     18.6   3.43       NaN   46.2  -96.6   0.0728       14.6     NA 
+    ## 10 722041 LA     27.8   1.48       NaN   29.4  -90.3   0.0267       26.3    987.
+    ## # … with 32 more rows, and abbreviated variable names ¹​wind.sp_dist,
+    ## #   ²​atm.press_dist
+
+We stored information median temperature, wind speed and atmosphere
+pressure for each state in corresponding data frames. For example,
+rep_temp_station_state.
+
 Knit the doc and save it on GitHub.
 
 ## Question 3: In the middle?
