@@ -89,6 +89,10 @@ Once you are done setting up the project, you can now start working with the MET
 ## Setup in R
 
 1. Load the `data.table` (and the `dtplyr` and `dplyr` packages if you plan to work with those).
+```{r}
+library("data.table")
+library(dplyr)
+```
 
 2. Load the met data from https://github.com/JSC370/jsc370-2023/blob/main/labs/lab03/met_all.gz or  (Use https://raw.githubusercontent.com/JSC370/jsc370-2023/main/labs/lab03/met_all.gz to download programmatically), and also the station data. For the latter, you can use the code we used during lecture to pre-process the stations data:
 
@@ -115,14 +119,50 @@ stations <- stations[n == 1,][, n := NULL]
 
 3. Merge the data as we did during the lecture.
 
+```{r}
+fn <- "https://raw.githubusercontent.com/JSC370/jsc370-2023/main/labs/lab03/met_all.gz"
+if (!file.exists("met_all.gz"))
+  download.file(fn, destfile = "met_all.gz")
+met <- data.table::fread("met_all.gz")
+met <- merge(x = met, y = stations, all.x = T, all.y = F, 
+             by.x = "USAFID", by.y = "USAF")
+```
+
 ## Question 1: Representative station for the US
 
 Across all weather stations, what is the median station in terms of temperature, wind speed, and atmospheric pressure? Look for the three weather stations that best represent continental US using the `quantile()` function. Do these three coincide?
 
 ```{r}
-
+station_ave <- met[, .(temp = mean(temp, na.rm = T), 
+                   wind.sp = mean(wind.sp, na.rm = T), 
+                   atm.press = mean(atm.press, na.rm = T)), 
+                    by = .(USAFID, STATE)]
+station_ave
 ```
 
+```{r}
+medians <- station_ave[, .(temp_50 = quantile(temp, probs = .5, na.rm = T), 
+                           wind.sp_50 = quantile(wind.sp, probs = .5, na.rm = T),
+                           atm.press_50 = quantile(atm.press, probs = .5, na.rm = T))]
+medians
+```
+```{r}
+station_ave %>% 
+  mutate_at(vars(temp), function(x) if_else(between(percent_rank(x), .499, .501), x, NA_real_)) %>%
+  subset(!is.na(temp))
+```
+
+```{r}
+station_ave %>% 
+  mutate_at(vars(wind.sp), function(x) if_else(between(percent_rank(x), .499, .501), x, NA_real_)) %>%
+  subset(!is.na(wind.sp))
+```
+
+```{r}
+station_ave %>% 
+  mutate_at(vars(atm.press), function(x) if_else(between(percent_rank(x), .499, .501), x, NA_real_)) %>%
+  subset(!is.na(atm.press))
+```
 Knit the document, commit your changes, and save it on GitHub. Don't forget to add `README.md` to the tree, the first time you render it.
 
 ## Question 2: Representative station per state
