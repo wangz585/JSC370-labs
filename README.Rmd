@@ -1,5 +1,6 @@
 ---
 title: "Lab 05 - Data Wrangling"
+author: "Zhenyu Wang"
 output: 
   github_document: default
   tufte::tufte_html:
@@ -247,7 +248,12 @@ Start by computing the states' average temperature. Use that measurement to clas
 - Mid: temp >= 20 and temp < 25
 - High: temp >= 25
 
-
+```{r}
+met[, state_temperature := mean(temp, na.rm = T), by = STATE]
+met[, temperature_category := fifelse(state_temperature < 20, "low",
+                          fifelse(state_temperature < 25, "mid",
+                                  "high"))]
+```
 
 Once you are done with that, you can compute the following:
 
@@ -259,8 +265,22 @@ Once you are done with that, you can compute the following:
 
 All by the levels described before.
 
+```{r}
+table(met$temperature_category, useNA = "always")
+tab <- met[, .(
+  num_entries = .N,
+  num_missing_temp = sum(is.na(temp)),
+  num_stations  = length(unique(USAFID)),
+  num_states = length(unique(STATE)),
+  mean_temp = mean(temp, na.rm = T),
+  mean_wind.sp = mean(wind.sp, na.rm = T),
+  mean_atm.press = mean(atm.press, na.rm = T)
+), by = temperature_category]
 
+knitr::kable(tab)
+```
 
+We categorize states by its average temperature. And we find out 25 states (half in the dataset) are middle temperature states, which are in 20~25 degree celsius. But the average wind speed for medium temperature states are lower than higher and lower temperature states slightly.
 Knit the document, commit your changes, and push them to GitHub. 
 
 ## Question 5: Advanced Regression
