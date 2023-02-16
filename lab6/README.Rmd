@@ -1,8 +1,7 @@
 ---
 title: "Lab 06 - Regular Expressions and Web Scraping"
-output: 
-  tufte::tufte_html:
-    css: style.css
+author: Zhenyu Wang
+output: html_document
 ---
 
 ```{r setup, echo=FALSE}
@@ -50,7 +49,7 @@ stringr::str_extract(counts, "[0-9,]+")
 
  - How many sars-cov-2 papers are there?
 
-_Answer here._
+_192,700_
 
 Don't forget to commit your work!
 
@@ -202,7 +201,7 @@ table(is.na(abstracts))
 
   - How many of these don't have an abstract? 
 
-_Answer here._
+_34_
 
 Now, the title
 
@@ -215,7 +214,7 @@ table(is.na(titles))
 
 - How many of these don't have a title ? 
 
-_Answer here._
+None.
 
 Finally, put everything together into a single `data.frame` and use
 `knitr::kable` to print the results
